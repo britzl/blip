@@ -29,13 +29,10 @@
 #include <math.h>
 #include <stdint.h>
 
-
-
 float sfxr_frnd(float range)
 {
 	return (float)rnd(10000)/10000*range;
 }
-
 
 void SfxrResetParams()
 {
@@ -344,12 +341,10 @@ int SfxrCalculateLength() {
 
 struct SfxrSound SfxrToBuffer() {
 	struct SfxrSound sound;
-	dmLogError("SfxrToBuffer");
 	sound.length = SfxrCalculateLength();
-	dmLogError("SfxrToBuffer length %d", sound.length);
 	sound.data = (unsigned char*) malloc(sound.length);
-	dmLogError("SfxrToBuffer length %d", sound.length);
 
+	sfxr.buffer_byteswritten=0;
 	sfxr.file_bytesswritten=0;
 	sfxr.filesample=0.0f;
 
@@ -525,7 +520,6 @@ struct SfxrSound Explosion(int seed) {
 
 
 struct SfxrSound Powerup(int seed) {
-	dmLogError("inside powerup");
 	srand(seed);
 	SfxrResetParams();
 

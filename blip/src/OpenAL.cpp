@@ -79,8 +79,6 @@ ALuint OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, ALsiz
 	alGenSources(1, &source);
 	alSourcei(source, AL_BUFFER, buffer);
 
-	dmLogError("newSource %d", source);
-
 	ALenum err = alGetError();
 	if (err != AL_NO_ERROR) {
 		dmLogError("Error creating new source");
@@ -134,7 +132,6 @@ void OpenAL::stopSource(ALuint source) {
 }
 
 void OpenAL::removeSource(ALuint source) {
-	dmLogError("removeSource %d", source);
 	ALint buffer;
 	alGetSourcei(source, AL_BUFFER, &buffer);
 	alDeleteSources(1, &source);

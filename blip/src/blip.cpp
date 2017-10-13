@@ -36,12 +36,10 @@ static int Pickup(lua_State* L) {
 }
 
 static int Powerup(lua_State* L) {
-	dmLogError("Powerup ext");
 	checkNumber(L, 1);
 	float seed = lua_tonumber(L, 1);
 
 	SfxrSound sound = Powerup(seed);
-	dmLogError("Powerup got sound");
 	ALuint source = OpenAL::getInstance()->newSource(sound.data, sound.length, AL_FORMAT_MONO16, 44100);
 
 	lua_pushinteger(L, source);

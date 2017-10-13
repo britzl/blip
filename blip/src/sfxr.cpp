@@ -39,15 +39,7 @@ float sfxr_frnd(float range)
 
 void SfxrResetParams()
 {
-	sfxr.master_vol=0.05f;
-	sfxr.sound_vol=0.5f;
-
 	sfxr.wave_type=0;
-
-	sfxr.filesample=0.0f;
-
-	sfxr.playing_sample=0;
-	sfxr.samples_played=0;
 
 	sfxr.p_base_freq=0.3f;
 	sfxr.p_freq_limit=0.0f;
@@ -79,6 +71,14 @@ void SfxrResetParams()
 
 	sfxr.p_arp_speed=0.0f;
 	sfxr.p_arp_mod=0.0f;
+
+	sfxr.master_vol=0.05f;
+	sfxr.sound_vol=0.5f;
+
+	sfxr.filesample=0.0f;
+
+	sfxr.playing_sample=0;
+	sfxr.samples_played=0;
 }
 
 

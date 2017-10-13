@@ -1,4 +1,16 @@
-namespace sfxr {
+#ifndef SFXR_H
+#define SFXR_H
+
+#define rnd(n) (rand()%(n+1))
+
+#define PI 3.14159265f
+
+struct SfxrSound {
+	unsigned char* data;
+	int length;
+};
+
+struct Sfxr {
 	int wave_type;
 
 	float p_base_freq;
@@ -32,9 +44,8 @@ namespace sfxr {
 	float p_arp_speed;
 	float p_arp_mod;
 
-	float master_vol=0.05f;
-
-	float sound_vol=0.5f;
+	float master_vol;
+	float sound_vol;
 
 	float vib_phase;
 	float vib_speed;
@@ -80,26 +91,22 @@ namespace sfxr {
 	double fperiod;
 	double fmaxperiod;
 
-	int playing_sample=0;
+	int playing_sample;
+	int samples_played;
 
-	int file_sampleswritten;
-	float filesample=0.0f;
-	int fileacc=0;
+	int buffer_byteswritten;
+	int file_bytesswritten;
+	float filesample;
+};
 
-	int wav_bits=16;
-	int wav_freq=44100;
+static Sfxr sfxr;
 
+struct SfxrSound Blip(int seed);
+struct SfxrSound Jump(int seed);
+struct SfxrSound Hurt(int seed);
+struct SfxrSound Powerup(int seed);
+struct SfxrSound Explosion(int seed);
+struct SfxrSound Laser(int seed);
+struct SfxrSound Pickup(int seed);
 
-	void ResetParams();
-	void ResetSample(int restart);
-
-	float frnd(float range);
-	
-	void Blip(int seed);
-	void Jump(int seed);
-	void Hurt(int seed);
-	void Powerup(int seed);
-	void Explosion(int seed);
-	void Laser(int seed);
-	void Pickup(int seed);
-}
+#endif

@@ -67,7 +67,6 @@ bool OpenAL::init() {
 }
 
 ALuint OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, ALsizei frequency) {
-	dmLogError("newSource creating buffer");
 	// Load the sound into a buffer.
 	ALuint buffer = CreateBuffer(data, AL_FORMAT_STEREO16, size, frequency);
 	if (buffer == 0) {

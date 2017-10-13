@@ -12,40 +12,45 @@
 #endif
 
 
-static int Laser(lua_State* L) {
+static int Create(SfxrSound (*f)(int), lua_State* L) {
 	checkNumber(L, 1);
 	float seed = lua_tonumber(L, 1);
 
-	SfxrSound sound = Laser(seed);
+	SfxrSound sound = (*f)(seed);
 	ALuint source = OpenAL::getInstance()->newSource(sound.data, sound.length, AL_FORMAT_MONO16, 44100);
 
 	lua_pushinteger(L, source);
 	return 1;
+
 }
 
+static int Blip(lua_State* L) {
+	return Create(SfxrBlip, L);
+}
 
-static int Pickup(lua_State* L) {
-	checkNumber(L, 1);
-	float seed = lua_tonumber(L, 1);
+static int Jump(lua_State* L) {
+	return Create(SfxrJump, L);
+}
 
-	SfxrSound sound = Pickup(seed);
-	ALuint source = OpenAL::getInstance()->newSource(sound.data, sound.length, AL_FORMAT_MONO16, 44100);
-
-	lua_pushinteger(L, source);
-	return 1;
+static int Hurt(lua_State* L) {
+	return Create(SfxrHurt, L);
 }
 
 static int Powerup(lua_State* L) {
-	checkNumber(L, 1);
-	float seed = lua_tonumber(L, 1);
-
-	SfxrSound sound = Powerup(seed);
-	ALuint source = OpenAL::getInstance()->newSource(sound.data, sound.length, AL_FORMAT_MONO16, 44100);
-
-	lua_pushinteger(L, source);
-	return 1;
+	return Create(SfxrPowerup, L);
 }
 
+static int Explosion(lua_State* L) {
+	return Create(SfxrExplosion, L);
+}
+
+static int Laser(lua_State* L) {
+	return Create(SfxrLaser, L);
+}
+
+static int Pickup(lua_State* L) {
+	return Create(SfxrPickup, L);
+}
 
 static int Play(lua_State* L) {
 	checkNumber(L, 1);
@@ -58,7 +63,6 @@ static int Play(lua_State* L) {
 static int Remove(lua_State* L) {
 	checkNumber(L, 1);
 	ALuint source = lua_tonumber(L, 1);
-	dmLogError("remove sound %d", source);
 	OpenAL::getInstance()->stopSource(source);
 	OpenAL::getInstance()->removeSource(source);
 	return 0;
@@ -66,14 +70,25 @@ static int Remove(lua_State* L) {
 
 
 static const luaL_reg Module_methods[] = {
+	{"blip", Blip},
+	{"jump", Jump},
+	{"hurt", Hurt},
+	{"powerup", Powerup},
+	{"explosion", Explosion},
 	{"laser", Laser},
 	{"pickup", Pickup},
-	{"powerup", Powerup},
 	{"play", Play},
 	{"remove", Remove},
 	{0, 0}
 };
 
+struct SfxrSound Blip(int seed);
+struct SfxrSound Jump(int seed);
+struct SfxrSound Hurt(int seed);
+struct SfxrSound Powerup(int seed);
+struct SfxrSound Explosion(int seed);
+struct SfxrSound Laser(int seed);
+struct SfxrSound Pickup(int seed);
 
 static void LuaInit(lua_State* L) {
 	int top = lua_gettop(L);

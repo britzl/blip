@@ -410,7 +410,7 @@ int SfxrToWAV(const char* filename)
 }
 
 
-struct SfxrSound Pickup(int seed) {
+struct SfxrSound SfxrPickup(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -427,7 +427,7 @@ struct SfxrSound Pickup(int seed) {
 	return SfxrToBuffer();
 }
 
-struct SfxrSound Laser(int seed) {
+struct SfxrSound SfxrLaser(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -474,7 +474,7 @@ struct SfxrSound Laser(int seed) {
 
 
 
-struct SfxrSound Explosion(int seed) {
+struct SfxrSound SfxrExplosion(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -519,7 +519,7 @@ struct SfxrSound Explosion(int seed) {
 }
 
 
-struct SfxrSound Powerup(int seed) {
+struct SfxrSound SfxrPowerup(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -552,7 +552,7 @@ struct SfxrSound Powerup(int seed) {
 }
 
 
-struct SfxrSound Hurt(int seed) {
+struct SfxrSound SfxrHurt(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -575,7 +575,7 @@ struct SfxrSound Hurt(int seed) {
 }
 
 
-struct SfxrSound Jump(int seed) {
+struct SfxrSound SfxrJump(int seed) {
 	srand(seed);
 	SfxrResetParams();
 
@@ -596,7 +596,7 @@ struct SfxrSound Jump(int seed) {
 }
 
 
-struct SfxrSound Blip(int seed) {
+struct SfxrSound SfxrBlip(int seed) {
 	srand(seed);
 	SfxrResetParams();
 

@@ -101,12 +101,12 @@ struct Sfxr {
 
 static Sfxr sfxr;
 
-struct SfxrSound Blip(int seed);
-struct SfxrSound Jump(int seed);
-struct SfxrSound Hurt(int seed);
-struct SfxrSound Powerup(int seed);
-struct SfxrSound Explosion(int seed);
-struct SfxrSound Laser(int seed);
-struct SfxrSound Pickup(int seed);
+struct SfxrSound SfxrBlip(int seed);
+struct SfxrSound SfxrJump(int seed);
+struct SfxrSound SfxrHurt(int seed);
+struct SfxrSound SfxrPowerup(int seed);
+struct SfxrSound SfxrExplosion(int seed);
+struct SfxrSound SfxrLaser(int seed);
+struct SfxrSound SfxrPickup(int seed);
 
 #endif

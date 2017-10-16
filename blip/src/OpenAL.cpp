@@ -4,23 +4,23 @@
 	#include "compatibility.h"
 #endif
 
+ALenum CheckError(const char* message) {
+	ALenum err = alGetError();
+	if (err != AL_NO_ERROR) {
+		dmLogError("OpenAL Error: %s (%s)\n", message, alGetString(err));
+	}
+	return err;
+}
+
 ALuint CreateBuffer(unsigned char* data, ALenum format, ALsizei size, ALsizei frequency) {
 	ALuint buffer = 0;
 	alGenBuffers(1, &buffer);
-	ALenum err = alGetError();
-	if (err != AL_NO_ERROR) {
-		dmLogError("OpenAL Error: %s\n", alGetString(err));
-	}
+	CheckError("Generating buffer");
 
-	//now we put our data into the openAL buffer and
-	//check for success
 	alBufferData(buffer, format, (void*)data, size, frequency);
 	free(data);
 
-	/* Check if an error occured, and clean up if so. */
-	err = alGetError();
-	if (err != AL_NO_ERROR) {
-		dmLogError("OpenAL Error: %s\n", alGetString(err));
+	if (CheckError("Copying to buffer")) {
 		if (alIsBuffer(buffer)) {
 			alDeleteBuffers(1, &buffer);
 		}
@@ -35,8 +35,9 @@ OpenAL* OpenAL::instance = NULL;
 
 OpenAL::OpenAL() :
 	is_initializable(SHOULD_INITIALIZE_OPENAL),
-	is_initialized(false) {
-	sources.reserve(128);
+	is_initialized(false),
+	is_closed(false) {
+	sources.SetCapacity(128);
 }
 
 OpenAL* OpenAL::getInstance() {
@@ -64,61 +65,69 @@ bool OpenAL::init() {
 	return true;
 }
 
-ALuint OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, ALsizei frequency) {
+OpenALSound OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, ALsizei frequency) {
+	OpenALSound alSound = {0};
+
 	// Load the sound into a buffer.
 	ALuint buffer = CreateBuffer(data, AL_FORMAT_STEREO16, size, frequency);
 	if (buffer == 0) {
-		return 0;
+		return alSound;
 	}
 
 	// Create the source to play the sound with.
 	ALuint source = 0;
 	alGenSources(1, &source);
 	alSourcei(source, AL_BUFFER, buffer);
+	CheckError("New source");
 
-	ALenum err = alGetError();
-	if (err != AL_NO_ERROR) {
-		dmLogError("Error creating new source");
+	alSound.buffer = buffer;
+	alSound.source = source;
+	sources.Push(alSound);
+	return alSound;
+}
+
+void OpenAL::play(OpenALSound sound) {
+	alSourcePlay(sound.source);
+	CheckError("Playing source");
+}
+
+void OpenAL::stop(OpenALSound sound) {
+	if(!is_closed) {
+		alSourceStop(sound.source);
+		CheckError("Stopping source");
 	}
-
-	sources.push_back(source);
-	return source;
 }
 
-void OpenAL::playSource(ALuint source) {
-	alSourcePlay(source);
-}
+void OpenAL::remove(OpenALSound sound) {
+	if(!is_closed) {
+		alDeleteSources(1, &sound.source);
+		CheckError("Deleting source");
 
-void OpenAL::stopSource(ALuint source) {
-	alSourceStop(source);
-}
+		alDeleteBuffers(1, &sound.buffer);
+		CheckError("Deleting buffer");
 
-void OpenAL::removeSource(ALuint source) {
-	ALint buffer;
-	alGetSourcei(source, AL_BUFFER, &buffer);
-	alDeleteSources(1, &source);
-	ALuint buffer_u = (ALuint)buffer;
-	alDeleteBuffers(1, &buffer_u);
-
-	std::vector<ALuint>::iterator it = std::find(sources.begin(), sources.end(), source);
-	if (it != sources.end()) {
-		std::swap(*it, sources.back());
-		sources.pop_back();
+		for(int i = 0; i < sources.Size(); i++) {
+			OpenALSound alSound = sources[i];
+			if (alSound.buffer == sound.buffer && alSound.source == sound.source) {
+				sources.EraseSwap(i);
+				break;
+			}
+		}
 	}
 }
 
 void OpenAL::close() {
-	for (std::vector<ALuint>::iterator i = sources.begin(); i != sources.end(); ++i) {
-		ALint buffer;
-		alGetSourcei(*i, AL_BUFFER, &buffer);
-		alDeleteSources(1, &*i);
-		ALuint buffer_u = (ALuint)buffer;
-		alDeleteBuffers(1, &buffer_u);
+	while(!sources.Empty()) {
+		OpenALSound alSound = sources.Back();
+		sources.Pop();
+		alSourceStop(alSound.source);
+		alDeleteSources(1, &alSound.source);
+		alDeleteBuffers(1, &alSound.buffer);
 	}
-	sources.clear();
 	if (is_initialized) {
 		alcMakeContextCurrent(NULL);
 		alcDestroyContext(context);
 		alcCloseDevice(device);
 	}
+	is_closed = true;
 }

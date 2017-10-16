@@ -5,8 +5,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <vector>
-#include <algorithm>
+#include <dmsdk/sdk.h>
 
 #include "AL/al.h"
 #include "AL/alc.h"
@@ -20,29 +19,31 @@
 	#define SHOULD_INITIALIZE_OPENAL false
 #endif
 
+struct OpenALSound {
+	unsigned int source;
+	unsigned int buffer;
+};
+
 class OpenAL {
 private:
 	OpenAL();
 	~OpenAL();
 	OpenAL(OpenAL const&);
-	void operator=(OpenAL const&);
 	static OpenAL* instance;
 	bool is_initializable;
 	bool is_initialized;
+	bool is_closed;
 	ALCdevice* device;
 	ALCcontext* context;
-	std::vector<ALuint> sources;
+	dmArray<OpenALSound> sources;
 public:
 	static OpenAL* getInstance();
 	bool init();
 	ALuint fromWav(char* name);
-	ALuint newSource(unsigned char* data, ALsizei size, ALenum format, ALsizei frequency);
-	const char* getSourceState(ALuint source);
-	float getSourceTime(ALuint source);
-	void setSourceTime(ALuint source, float seconds);
-	void playSource(ALuint source);
-	void stopSource(ALuint source);
-	void removeSource(ALuint source);
+	OpenALSound newSource(unsigned char* data, ALsizei size, ALenum format, ALsizei frequency);
+	void play(OpenALSound sound);
+	void stop(OpenALSound sound);
+	void remove(OpenALSound sound);
 	void close();
 };
 

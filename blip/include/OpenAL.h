@@ -29,10 +29,9 @@ private:
 	static OpenAL* instance;
 	bool is_initializable;
 	bool is_initialized;
-	bool is_suspended;
 	ALCdevice* device;
 	ALCcontext* context;
-	std::vector<ALuint> sources, suspended_sources;
+	std::vector<ALuint> sources;
 public:
 	static OpenAL* getInstance();
 	bool init();
@@ -42,12 +41,8 @@ public:
 	float getSourceTime(ALuint source);
 	void setSourceTime(ALuint source, float seconds);
 	void playSource(ALuint source);
-	void pauseSource(ALuint source);
-	void rewindSource(ALuint source);
 	void stopSource(ALuint source);
 	void removeSource(ALuint source);
-	void suspend();
-	void resume();
 	void close();
 };
 

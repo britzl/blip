@@ -35,10 +35,8 @@ OpenAL* OpenAL::instance = NULL;
 
 OpenAL::OpenAL() :
 	is_initializable(SHOULD_INITIALIZE_OPENAL),
-	is_initialized(false),
-	is_suspended(false) {
+	is_initialized(false) {
 	sources.reserve(128);
-	suspended_sources.reserve(128);
 }
 
 OpenAL* OpenAL::getInstance() {
@@ -87,43 +85,8 @@ ALuint OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, ALsiz
 	return source;
 }
 
-
-const char* OpenAL::getSourceState(ALuint source) {
-	ALenum state = 0;
-	alGetSourcei(source, AL_SOURCE_STATE, &state);
-	switch (state) {
-		case AL_INITIAL:
-			return "initial";
-		case AL_PLAYING:
-			return "playing";
-		case AL_PAUSED:
-			return "paused";
-		case AL_STOPPED:
-			return "stopped";
-	}
-	return "";
-}
-
-float OpenAL::getSourceTime(ALuint source) {
-	float offset;
-	alGetSourcef(source, AL_SEC_OFFSET, &offset);
-	return offset;
-}
-
-void OpenAL::setSourceTime(ALuint source, float seconds) {
-	alSourcef(source, AL_SEC_OFFSET, seconds);
-}
-
 void OpenAL::playSource(ALuint source) {
 	alSourcePlay(source);
-}
-
-void OpenAL::pauseSource(ALuint source) {
-	alSourcePause(source);
-}
-
-void OpenAL::rewindSource(ALuint source) {
-	alSourceRewind(source);
 }
 
 void OpenAL::stopSource(ALuint source) {
@@ -141,30 +104,6 @@ void OpenAL::removeSource(ALuint source) {
 	if (it != sources.end()) {
 		std::swap(*it, sources.back());
 		sources.pop_back();
-	}
-}
-
-void OpenAL::suspend() {
-	if (!is_suspended && is_initializable) {
-		for (std::vector<ALuint>::iterator i = sources.begin(); i != sources.end(); ++i) {
-			ALenum state = 0;
-			alGetSourcei(*i, AL_SOURCE_STATE, &state);
-			if (state == AL_PLAYING) {
-				alSourcePause(*i);
-				suspended_sources.push_back(*i);
-			}
-		}
-		is_suspended = true;
-	}
-}
-
-void OpenAL::resume() {
-	if (is_suspended) {
-		for (std::vector<ALuint>::iterator i = suspended_sources.begin(); i != suspended_sources.end(); ++i) {
-			alSourcePlay(*i);
-		}
-		suspended_sources.clear();
-		is_suspended = false;
 	}
 }
 

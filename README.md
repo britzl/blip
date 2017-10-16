@@ -24,6 +24,9 @@ Blip is very easy to use. You need to start by creating one or more Blip sounds.
 
  	blip.play(sound)
 
+# Try it!
+Try the [HTML5 version of the example app](https://github.com/Lerg).
+
 # Credits
 * [Sfxr](https://github.com/grimfang4/sfxr) by [Dr.Petter](http://www.drpetter.se/)
 * OpenAL wrapper code based on [extension-openal](https://github.com/Lerg/extension-openal) by [Sergey Lerg](https://github.com/Lerg)

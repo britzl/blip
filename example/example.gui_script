@@ -32,16 +32,17 @@ function on_input(self, action_id, action)
 
 			if data.sound_id and data.seed ~= self.seed then
 				print(("Removing existing %s sound since seed has changed"):format(button))
-				blip.remove(data.sound_id)
-				data.sound_id = nil
+				--blip.remove(data.sound_id)
+				data.sound = nil
 				data.seed = nil
 			end
-			if not data.sound_id then
+			if not data.sound then
 				print(("Creating %s sound with seed %d"):format(button, self.seed))
-				data.sound_id = data.fn(self.seed)
+				data.sound = data.fn(self.seed)
 				data.seed = self.seed
 			end
-			blip.play(data.sound_id)
+			print(data.sound)
+			blip.play(data.sound)
 			
 		end)
 	end

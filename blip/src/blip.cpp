@@ -11,6 +11,51 @@
 #include <dmsdk/dlib/log.h>
 #endif
 
+#define BLIPSOUND "BlipSound"
+
+typedef struct BlipSound {
+	ALuint source;
+} BlipSound;
+
+
+static BlipSound *ToBlipSound (lua_State *L, int index) {
+	BlipSound *sound = (BlipSound *)lua_touserdata(L, index);
+	if (sound == NULL) luaL_typerror(L, index, BLIPSOUND);
+	return sound;
+}
+
+static BlipSound *CheckBlipSound (lua_State *L, int index) {
+	BlipSound *sound;
+	luaL_checktype(L, index, LUA_TUSERDATA);
+	sound = (BlipSound *)luaL_checkudata(L, index, BLIPSOUND);
+	if (sound == NULL) luaL_typerror(L, index, BLIPSOUND);
+	return sound;
+}
+
+static void PushBlipSound(lua_State* L, ALuint source) {
+	int top = lua_gettop(L);
+	BlipSound *sound = (BlipSound *)lua_newuserdata(L, sizeof(BlipSound));
+	luaL_getmetatable(L, BLIPSOUND);
+	lua_setmetatable(L, -2);
+	sound->source = source;
+	assert(top + 1 == lua_gettop(L));
+}
+
+static int BlipSound_gc(lua_State* L) {
+	CheckBlipSound(L, 1);
+	BlipSound* sound = ToBlipSound(L, 1);
+	OpenAL::getInstance()->stopSource(sound->source);
+	OpenAL::getInstance()->removeSource(sound->source);
+	return 0;
+}
+
+static int BlipSound_tostring(lua_State* L) {
+	CheckBlipSound(L, 1);
+	BlipSound* sound = ToBlipSound(L, 1);
+	lua_pushfstring(L, "[BlipSound %d]", sound->source);
+	return 1;
+}
+
 
 static int Create(SfxrSound (*f)(int), lua_State* L) {
 	checkNumber(L, 1);
@@ -19,9 +64,12 @@ static int Create(SfxrSound (*f)(int), lua_State* L) {
 	SfxrSound sound = (*f)(seed);
 	ALuint source = OpenAL::getInstance()->newSource(sound.data, sound.length, AL_FORMAT_MONO16, 44100);
 
-	lua_pushinteger(L, source);
+	if (source == 0) {
+		lua_pushnil(L);
+	} else {
+		PushBlipSound(L, source);
+	}
 	return 1;
-
 }
 
 static int Blip(lua_State* L) {
@@ -53,18 +101,9 @@ static int Pickup(lua_State* L) {
 }
 
 static int Play(lua_State* L) {
-	checkNumber(L, 1);
-	ALuint source = lua_tonumber(L, 1);
-	OpenAL::getInstance()->playSource(source);
-	return 0;
-}
-
-
-static int Remove(lua_State* L) {
-	checkNumber(L, 1);
-	ALuint source = lua_tonumber(L, 1);
-	OpenAL::getInstance()->stopSource(source);
-	OpenAL::getInstance()->removeSource(source);
+	CheckBlipSound(L, 1);
+	BlipSound* sound = ToBlipSound(L, 1);
+	OpenAL::getInstance()->playSource(sound->source);
 	return 0;
 }
 
@@ -78,7 +117,12 @@ static const luaL_reg Module_methods[] = {
 	{"laser", Laser},
 	{"pickup", Pickup},
 	{"play", Play},
-	{"remove", Remove},
+	{0, 0}
+};
+
+static const luaL_reg BlipSound_metamethods[] = {
+	{"__gc", BlipSound_gc},
+	{"__tostring", BlipSound_tostring},
 	{0, 0}
 };
 
@@ -93,8 +137,12 @@ struct SfxrSound Pickup(int seed);
 static void LuaInit(lua_State* L) {
 	int top = lua_gettop(L);
 	luaL_register(L, MODULE_NAME, Module_methods);
-
 	lua_pop(L, 1);
+
+	luaL_newmetatable(L, BLIPSOUND);
+	luaL_register(L, NULL, BlipSound_metamethods);
+	lua_pop(L, 1);
+
 	assert(top == lua_gettop(L));
 }
 

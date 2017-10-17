@@ -1,3 +1,4 @@
+![](images/BLIP-HERO-PA01.png)
 # Blip
 Blip is a library to procedurally generate and play sound effects for games. The library is based on the [Sfxr](https://github.com/grimfang4/sfxr) project.
 

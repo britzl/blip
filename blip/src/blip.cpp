@@ -124,13 +124,6 @@ static const luaL_reg Sound_metamethods[] = {
 	{0, 0}
 };
 
-struct SfxrSound Blip(int seed);
-struct SfxrSound Jump(int seed);
-struct SfxrSound Hurt(int seed);
-struct SfxrSound Powerup(int seed);
-struct SfxrSound Explosion(int seed);
-struct SfxrSound Laser(int seed);
-struct SfxrSound Pickup(int seed);
 
 static void LuaInit(lua_State* L) {
 	int top = lua_gettop(L);

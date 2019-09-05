@@ -56,6 +56,7 @@ bool OpenAL::init() {
 		}
 		context = alcCreateContext(device, NULL);
 		alcMakeContextCurrent(context);
+		CheckError("Failed to create audio context");
 		if (!context) {
 			dmLogError("Failed to make audio context.\n");
 			return false;
@@ -73,10 +74,11 @@ OpenALSound OpenAL::newSource(unsigned char* data, ALsizei size, ALenum format, 
 	if (buffer == 0) {
 		return alSound;
 	}
-
 	// Create the source to play the sound with.
 	ALuint source = 0;
+	dmLogInfo("newSource alGenSources");
 	alGenSources(1, &source);
+	CheckError("alGenSources");
 	alSourcei(source, AL_BUFFER, buffer);
 	CheckError("New source");
 

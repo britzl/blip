@@ -13,7 +13,7 @@
 
 
 // Init only on Android and HTML5
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_WINDOWS) || defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_HTML5)
 	#define SHOULD_INITIALIZE_OPENAL true
 #else
 	#define SHOULD_INITIALIZE_OPENAL false

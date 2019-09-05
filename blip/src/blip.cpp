@@ -8,7 +8,6 @@
 
 #ifndef DLIB_LOG_DOMAIN
 #define DLIB_LOG_DOMAIN "blip"
-#include <dmsdk/dlib/log.h>
 #endif
 
 #define BLIPSOUND "BlipSound"

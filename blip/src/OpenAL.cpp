@@ -37,7 +37,8 @@ OpenAL::OpenAL() :
 	is_initializable(SHOULD_INITIALIZE_OPENAL),
 	is_initialized(false),
 	is_closed(false) {
-	sources.SetCapacity(128);
+		sources.SetCapacity(128);
+		init();
 }
 
 OpenAL* OpenAL::getInstance() {

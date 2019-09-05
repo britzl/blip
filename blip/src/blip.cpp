@@ -142,8 +142,7 @@ dmExtension::Result AppInitializeBlipExtension(dmExtension::AppParams* params) {
 
 dmExtension::Result InitializeBlipExtension(dmExtension::Params* params) {
 	LuaInit(params->m_L);
-	bool result = OpenAL::getInstance()->init();
-	return result ? dmExtension::RESULT_OK : dmExtension::RESULT_INIT_ERROR;
+	return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result AppFinalizeBlipExtension(dmExtension::AppParams* params) {

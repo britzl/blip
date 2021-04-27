@@ -1,71 +1,69 @@
 #include <dmsdk/sdk.h>
-#include "OpenAL.h"
-#include "LuaUtils.h"
+#include <string.h>
 #include "sfxr.h"
 
 #define LIB_NAME "Blip"
 #define MODULE_NAME "blip"
 
-#ifndef DLIB_LOG_DOMAIN
-#define DLIB_LOG_DOMAIN "blip"
-#endif
 
-#define BLIPSOUND "BlipSound"
-
-
-
-static OpenALSound *ToSound (lua_State *L, int index) {
-	OpenALSound *sound = (OpenALSound *)lua_touserdata(L, index);
-	if (sound == NULL) luaL_typerror(L, index, BLIPSOUND);
-	return sound;
+static void write32(unsigned char* buff, uint32_t offset, uint32_t value)
+{
+	buff[offset+0] = (value & 0x000000FF) >> 0;
+	buff[offset+1] = (value & 0x0000FF00) >> 8;
+	buff[offset+2] = (value & 0x00FF0000) >> 16;
+	buff[offset+3] = (value & 0xFF000000) >> 24;
+}
+static void write16(unsigned char* buff, uint32_t offset, uint16_t value)
+{
+	buff[offset+0] = (value & 0x000000FF) >> 0;
+	buff[offset+1] = (value & 0x0000FF00) >> 8;
 }
 
-static OpenALSound *CheckSound (lua_State *L, int index) {
-	OpenALSound *sound;
-	luaL_checktype(L, index, LUA_TUSERDATA);
-	sound = (OpenALSound *)luaL_checkudata(L, index, BLIPSOUND);
-	if (sound == NULL) luaL_typerror(L, index, BLIPSOUND);
-	return sound;
-}
+// http://soundfile.sapp.org/doc/WaveFormat/
+static unsigned char* SfxrToWav(SfxrSound sfxr_sound, uint32_t* sizeout)
+{
+	const int num_channels = 1;
+	const int bits_per_sample = 16;
+	const int sample_rate = 44100;
+	const int byte_rate = sample_rate * bits_per_sample / 8;
+	const int block_align = num_channels * bits_per_sample / 8;
+	const uint32_t num_samples = sfxr_sound.length;
+	const uint32_t subchunk1_size = 16;
+	const uint32_t subchunk2_size = sfxr_sound.length;
+	const uint32_t chunk_size = 4 + (8 + subchunk1_size) + (8 + subchunk2_size);
+	*sizeout = chunk_size;
 
-static void PushSound(lua_State* L, OpenALSound alSound) {
-	int top = lua_gettop(L);
-	OpenALSound *sound = (OpenALSound *)lua_newuserdata(L, sizeof(OpenALSound));
-	luaL_getmetatable(L, BLIPSOUND);
-	lua_setmetatable(L, -2);
-	sound->source = alSound.source;
-	sound->buffer = alSound.buffer;
-	assert(top + 1 == lua_gettop(L));
-}
+	unsigned char* wav = (unsigned char*)malloc(chunk_size);
 
-static int Sound_gc(lua_State* L) {
-	CheckSound(L, 1);
-	OpenALSound* sound = ToSound(L, 1);
-	OpenAL::getInstance()->stop(*sound);
-	OpenAL::getInstance()->remove(*sound);
-	return 0;
-}
+	wav[0]='R';wav[1]='I';wav[2]='F';wav[3]='F';			// ChunkID
+	write32(wav, 4, chunk_size);							// ChunkSize
+	wav[8]='W';wav[9]='A';wav[10]='V';wav[11]='E';			// Format
+	wav[12]='f';wav[13]='m';wav[14]='t';wav[15]=' ';		// SubChunk1ID
+	write32(wav, 16, subchunk1_size);						// Subchunk1Size - PCM
+	write16(wav, 20, 1);									// AudioFormat - PCM
+	write16(wav, 22, num_channels);							// NumChannels
+	write32(wav, 24, sample_rate);							// SampleRate
+	write32(wav, 28, byte_rate);							// ByteRate
+	write16(wav, 32, block_align);							// BlockAlign
+	write16(wav, 34, bits_per_sample);						// BitsPerSample
+	wav[36]='d';wav[37]='a';wav[38]='t';wav[39]='a';		// SubChunk2ID
+	write32(wav, 40, subchunk2_size);						// SubChunk2Size
 
-static int Sound_tostring(lua_State* L) {
-	CheckSound(L, 1);
-	OpenALSound* sound = ToSound(L, 1);
-	lua_pushfstring(L, "[BlipSound %d]", sound->source);
-	return 1;
+	memcpy(wav + 44, sfxr_sound.data, sfxr_sound.length);
+	return wav;
 }
-
 
 static int Create(SfxrSound (*f)(int), lua_State* L) {
-	checkNumber(L, 1);
-	float seed = lua_tonumber(L, 1);
+	DM_LUA_STACK_CHECK(L, 1);
+	float seed = luaL_checknumber(L, 1);
+	SfxrSound sfxr_sound = (*f)(seed);
 
-	SfxrSound sfxrSound = (*f)(seed);
-	OpenALSound alSound = OpenAL::getInstance()->newSource(sfxrSound.data, sfxrSound.length, AL_FORMAT_MONO16, 44100);
+	uint32_t wav_size = 0;
+	unsigned char* wav = SfxrToWav(sfxr_sound, &wav_size);
 
-	if (alSound.source == 0) {
-		lua_pushnil(L);
-	} else {
-		PushSound(L, alSound);
-	}
+	lua_pushlstring(L, (const char*)wav, wav_size);
+
+	free(wav);
 	return 1;
 }
 
@@ -97,13 +95,6 @@ static int Pickup(lua_State* L) {
 	return Create(SfxrPickup, L);
 }
 
-static int Play(lua_State* L) {
-	CheckSound(L, 1);
-	OpenALSound* sound = ToSound(L, 1);
-	OpenAL::getInstance()->play(*sound);
-	return 0;
-}
-
 
 static const luaL_reg Module_methods[] = {
 	{"blip", Blip},
@@ -113,13 +104,6 @@ static const luaL_reg Module_methods[] = {
 	{"explosion", Explosion},
 	{"laser", Laser},
 	{"pickup", Pickup},
-	{"play", Play},
-	{0, 0}
-};
-
-static const luaL_reg Sound_metamethods[] = {
-	{"__gc", Sound_gc},
-	{"__tostring", Sound_tostring},
 	{0, 0}
 };
 
@@ -127,10 +111,6 @@ static const luaL_reg Sound_metamethods[] = {
 static void LuaInit(lua_State* L) {
 	int top = lua_gettop(L);
 	luaL_register(L, MODULE_NAME, Module_methods);
-	lua_pop(L, 1);
-
-	luaL_newmetatable(L, BLIPSOUND);
-	luaL_register(L, NULL, Sound_metamethods);
 	lua_pop(L, 1);
 
 	assert(top == lua_gettop(L));
@@ -150,15 +130,7 @@ dmExtension::Result AppFinalizeBlipExtension(dmExtension::AppParams* params) {
 }
 
 dmExtension::Result FinalizeBlipExtension(dmExtension::Params* params) {
-	OpenAL::getInstance()->close();
 	return dmExtension::RESULT_OK;
 }
 
-void OnEventBlipExtension(dmExtension::Params* params, const dmExtension::Event* event) {
-}
-
-dmExtension::Result UpdateBlipExtension(dmExtension::Params* params) {
-	return dmExtension::RESULT_OK;
-}
-
-DM_DECLARE_EXTENSION(Blip, LIB_NAME, AppInitializeBlipExtension, AppFinalizeBlipExtension, InitializeBlipExtension, UpdateBlipExtension, OnEventBlipExtension, FinalizeBlipExtension)
+DM_DECLARE_EXTENSION(Blip, LIB_NAME, AppInitializeBlipExtension, AppFinalizeBlipExtension, InitializeBlipExtension, 0, 0, FinalizeBlipExtension)

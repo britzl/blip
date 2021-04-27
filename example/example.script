@@ -1,0 +1,22 @@
+function init(self)
+	self.sounds = {}
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("play_blip") then
+		local sound_id = message.sound
+		local seed = message.seed
+
+		-- generate sound if it is a new sound or if the seed has changed
+		if not self.sounds[sound_id] or self.sounds[sound_id].seed ~= seed then
+			self.sounds[sound_id] = {
+				data = blip[sound_id](seed),
+				seed = seed
+			}
+		end
+		
+		resource.set_sound(go.get("#sound", "sound"), self.sounds[sound_id].data)
+		sound.stop("#sound")
+		sound.play("#sound")
+	end
+end

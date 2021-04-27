@@ -1,6 +1,6 @@
 ![](images/BLIP-HERO-PA01.png)
 # Blip
-Blip is a library to procedurally generate and play sound effects for games. The library is based on the [Sfxr](https://github.com/grimfang4/sfxr) project.
+Blip is a library to procedurally generate and play sound effects for games. The library is based on the [Sfxr](https://github.com/grimfang4/sfxr) project by [Dr.Petter](http://www.drpetter.se/).
 
 
 # Installation
@@ -35,7 +35,3 @@ sound.play("#sound")
 
 # Try it!
 Try the [HTML5 version of the example app](https://britzl.github.io/Blip/).
-
-# Credits
-* [Sfxr](https://github.com/grimfang4/sfxr) by [Dr.Petter](http://www.drpetter.se/)
-* OpenAL wrapper code based on [extension-openal](https://github.com/Lerg/extension-openal) by [Sergey Lerg](https://github.com/Lerg)

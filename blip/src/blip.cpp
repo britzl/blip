@@ -22,14 +22,15 @@ static void write16(unsigned char* buff, uint32_t offset, uint16_t value)
 // http://soundfile.sapp.org/doc/WaveFormat/
 static unsigned char* SfxrToWav(SfxrSound sfxr_sound, uint32_t* sizeout)
 {
-	const int num_channels = 1;
-	const int bits_per_sample = 16;
-	const int sample_rate = 44100;
-	const int byte_rate = sample_rate * bits_per_sample / 8;
-	const int block_align = num_channels * bits_per_sample / 8;
-	const uint32_t num_samples = sfxr_sound.length;
+	const uint32_t num_channels = 1;
+	const uint32_t bits_per_sample = 16;
+	const uint32_t bytes_per_sample = bits_per_sample / 8;
+	const uint32_t sample_rate = 44100;
+	const uint32_t byte_rate = sample_rate * num_channels * bytes_per_sample;
+	const uint32_t block_align = num_channels * bytes_per_sample;
+	const uint32_t num_samples = sfxr_sound.length / (num_channels * bytes_per_sample);
 	const uint32_t subchunk1_size = 16;
-	const uint32_t subchunk2_size = sfxr_sound.length;
+	const uint32_t subchunk2_size = num_samples * num_channels * bytes_per_sample; // same as sfxr_sound.length
 	const uint32_t chunk_size = 4 + (8 + subchunk1_size) + (8 + subchunk2_size);
 	*sizeout = chunk_size;
 

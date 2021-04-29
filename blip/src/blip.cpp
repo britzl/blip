@@ -64,6 +64,7 @@ static int Create(SfxrSound (*f)(int), lua_State* L) {
 	lua_pushlstring(L, (const char*)wav, wav_size);
 
 	free(wav);
+	free(sfxr_sound.data);
 	return 1;
 }
 

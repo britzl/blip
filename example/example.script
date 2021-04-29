@@ -2,21 +2,59 @@ function init(self)
 	self.sounds = {}
 end
 
+local function save_to_file(filename, data)
+	local f = io.open(filename, "wb")
+	if f then
+		print("saving sound to file", filename)
+		f:write(data)
+		f:flush()
+		f:close()
+	end
+end
+
+local function load_from_file(filename)
+	local f = io.open(filename, "rb")
+	if f then
+		print("loading sound from file", filename)
+		return f:read("*a")
+	end
+end
+
+local function load_from_resources(filename)
+	local data = sys.load_resource("/" .. filename)
+	if data then
+		print("loading sound from resource", filename)
+	end
+	return data
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("play_blip") then
 		local sound_id = message.sound
 		local seed = message.seed
 
+		local save = false
 		-- generate sound if it is a new sound or if the seed has changed
 		if not self.sounds[sound_id] or self.sounds[sound_id].seed ~= seed then
+			local filename = "sounds/" .. sound_id .. "-" .. tostring(seed) .. ".wav"
+
+			local data = load_from_resources(filename) or load_from_file(filename)
+			if not data then
+				print("generating sound", filename)
+				data = blip[sound_id](seed)
+				if save then
+					save_to_file(filename, data)
+				end
+			end
 			self.sounds[sound_id] = {
-				data = blip[sound_id](seed),
+				data = data,
 				seed = seed
 			}
-		end
-		
+		end		
 		resource.set_sound(go.get("#sound", "sound"), self.sounds[sound_id].data)
-		sound.stop("#sound")
-		sound.play("#sound")
+		timer.delay(0, false, function()
+			sound.stop("#sound")
+			sound.play("#sound")
+		end)
 	end
 end

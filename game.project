@@ -1,6 +1,7 @@
 [project]
 title = Blip
 dependencies = https://github.com/britzl/gooey/archive/1.1.zip
+custom_resources = sounds
 
 [bootstrap]
 main_collection = /example/example.collectionc

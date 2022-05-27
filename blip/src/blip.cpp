@@ -61,6 +61,10 @@ static int Create(SfxrSound (*f)(int), lua_State* L) {
 
 	uint32_t wav_size = 0;
 	unsigned char* wav = SfxrToWav(sfxr_sound, &wav_size);
+	if (wav == 0) {
+		lua_pushnil(L);
+		return 1;
+	}
 
 	lua_pushlstring(L, (const char*)wav, wav_size);
 

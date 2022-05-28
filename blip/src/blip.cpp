@@ -32,16 +32,18 @@ static unsigned char* SfxrToWav(SfxrSound sfxr_sound, uint32_t* sizeout)
 	const uint32_t subchunk1_size = 16;
 	const uint32_t subchunk2_size = num_samples * num_channels * bytes_per_sample; // same as sfxr_sound.length
 	const uint32_t chunk_size = 4 + (8 + subchunk1_size) + (8 + subchunk2_size);
-	*sizeout = chunk_size;
 
-	unsigned char* wav = (unsigned char*)malloc(chunk_size);
+	const uint32_t wav_size = 8 + chunk_size; // ChunkID+ChunkSize+Chunk
+	*sizeout = wav_size;
+
+	unsigned char* wav = (unsigned char*)malloc(wav_size);
 
 	wav[0]='R';wav[1]='I';wav[2]='F';wav[3]='F';			// ChunkID
 	write32(wav, 4, chunk_size);							// ChunkSize
 	wav[8]='W';wav[9]='A';wav[10]='V';wav[11]='E';			// Format
 	wav[12]='f';wav[13]='m';wav[14]='t';wav[15]=' ';		// SubChunk1ID
-	write32(wav, 16, subchunk1_size);						// Subchunk1Size - PCM
-	write16(wav, 20, 1);									// AudioFormat - PCM
+	write32(wav, 16, subchunk1_size);						// Subchunk1Size - 16 bytes for PCM
+	write16(wav, 20, 1);									// AudioFormat - 1 = WAVE_FORMAT_PCM
 	write16(wav, 22, num_channels);							// NumChannels
 	write32(wav, 24, sample_rate);							// SampleRate
 	write32(wav, 28, byte_rate);							// ByteRate

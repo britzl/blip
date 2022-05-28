@@ -335,6 +335,7 @@ void SfxrPlaySample(unsigned char* buffer, FILE* file) {
 
 int SfxrCalculateLength() {
 	SfxrPlaySample(NULL, NULL);
+	// bits_per_sample = 16 = 2 bytes
 	return sfxr.samples_played * 2;
 }
 
